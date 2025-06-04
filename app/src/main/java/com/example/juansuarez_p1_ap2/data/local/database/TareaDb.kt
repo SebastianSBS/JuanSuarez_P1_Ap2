@@ -1,4 +1,4 @@
-package com.example.juansuarez_p1_ap2.data.local.database.tareadb
+package com.example.juansuarez_p1_ap2.data.local.database
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
@@ -13,4 +13,6 @@ import com.example.juansuarez_p1_ap2.data.local.entities.TareaEntity
     exportSchema = false
 )
 abstract class TareaDb : RoomDatabase() {
-    abstract fun TareaDao(): TareaDao}
+    abstract fun TareaDao(): TareaDao
+    }
+
