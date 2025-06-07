@@ -8,6 +8,6 @@ data class TareaEntity(
     @PrimaryKey
     val tareaId: Int? = null,
     val descripcion: String = "",
-    val tiempo: Int? = null
+    val tiempo: Long? = null
 )
 

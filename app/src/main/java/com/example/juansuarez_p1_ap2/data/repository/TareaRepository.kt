@@ -14,4 +14,6 @@ class TareaRepository @Inject constructor(
     suspend fun delete(tarea: TareaEntity) = tareaDao.delete(tarea)
 
     fun getTareas() = tareaDao.getAll()
+
+    suspend fun existeDescripcion(descripcion: String) = tareaDao.existeDescripcion(descripcion)
 }

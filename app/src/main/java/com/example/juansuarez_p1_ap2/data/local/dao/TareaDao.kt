@@ -27,4 +27,8 @@ interface TareaDao {
 
     @Query("SELECT * FROM Tareas")
     fun getAll(): Flow<List<TareaEntity>>
-    }
+
+    @Query("SELECT COUNT(*) > 0 FROM Tareas WHERE LOWER(descripcion) = LOWER(:descripcion)")
+    suspend fun existeDescripcion(descripcion: String): Boolean
+
+}

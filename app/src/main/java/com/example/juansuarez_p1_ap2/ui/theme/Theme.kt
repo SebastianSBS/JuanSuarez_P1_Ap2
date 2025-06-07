@@ -56,3 +56,5 @@ fun JuanSuarez_P1_Ap2Theme(
         content = content
     )
 }
+
+annotation class Theme
