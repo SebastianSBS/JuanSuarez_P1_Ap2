@@ -26,35 +26,43 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.juansuarez_p1_ap2.data.local.entities.TareaEntity
+import kotlinx.coroutines.delay
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 @Composable
 fun TareaListScreen(
     viewModel: TareaViewModel = hiltViewModel(),
-    goToSystem: (Int) -> Unit,
-    createSystem: () -> Unit
+    goToTarea: (Int) -> Unit,
+    createTarea: () -> Unit
 ){
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    SystemListBodyScreen(
+    TareaListBodyScreen(
         uiState = uiState,
-        goToSystem,
-        createSystem
+        goToTarea,
+        createTarea
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SystemListBodyScreen(
+fun TareaListBodyScreen(
     uiState: TareaUiState,
-    goToSystem: (Int) -> Unit,
-    createSystem: () -> Unit
+    goToTarea: (Int) -> Unit,
+    createTarea: () -> Unit
 ) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -62,15 +70,15 @@ fun SystemListBodyScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Lista de Sistemas",
+                        text = "Lista de Tareas",
                         style = MaterialTheme.typography.headlineSmall
                     )
                 }
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = createSystem) {
-                Icon(Icons.Filled.Add, contentDescription = "Agregar nuevo ticket")
+            FloatingActionButton(onClick = createTarea) {
+                Icon(Icons.Filled.Add, contentDescription = "Agregar nueva tarea")
             }
         }
     ) { padding ->
@@ -85,10 +93,10 @@ fun SystemListBodyScreen(
             modifier = Modifier.fillMaxSize()
         ) {
             items(uiState.tareas) {
-                SystemRow(
+                TareaRow(
                     it,
-                    goToSystem,
-                    createSystem
+                    goToTarea,
+                    createTarea
                 )
             }
         }
@@ -96,11 +104,14 @@ fun SystemListBodyScreen(
 }
 
 @Composable
-fun SystemRow(
+fun TareaRow(
     it: TareaEntity,
-    goToSystem: (Int) -> Unit,
-    createSystem: () -> Unit
+    goToTarea: (Int) -> Unit,
+    createTarea: () -> Unit
 ){
+
+    val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+
     Card (
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
@@ -113,11 +124,50 @@ fun SystemRow(
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.clickable {
-                    goToSystem(it.tareaId ?: 0)
-                },
-                horizontalArrangement = TODO(),
-                content = TODO()
+                    goToTarea(it.tareaId ?: 0)
+                }
+            ) {
+                Text(
+                    text = "ID: ${it.tareaId}",
+                    style = MaterialTheme.typography.labelMedium,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = "Asignación: ${it.descripcion}",
+                style = MaterialTheme.typography.titleMedium
             )
+            CountDownTimer(deadlineMillis = it.tiempo!!.toLong())
         }
     }
+}
+
+@Composable
+fun CountDownTimer(deadlineMillis: Long){
+    var timeLeftMillis by remember { mutableStateOf(deadlineMillis - System.currentTimeMillis()) }
+
+    LaunchedEffect (key1 = deadlineMillis) {
+        while (timeLeftMillis > 0){
+            delay(1000L)
+            timeLeftMillis = deadlineMillis - System.currentTimeMillis()
+        }
+    }
+
+    val days = TimeUnit.MILLISECONDS.toDays(timeLeftMillis)
+    val hours = TimeUnit.MILLISECONDS.toHours(timeLeftMillis) % 24
+    val minutes = TimeUnit.MILLISECONDS.toMinutes(timeLeftMillis) % 60
+    val seconds = TimeUnit.MILLISECONDS.toSeconds(timeLeftMillis) % 60
+
+    Text(
+        text = when {
+            days > 0 -> "La tarea vence en $days dias, $hours h"
+            hours > 0 -> "La tarea vence en $hours h, $minutes min"
+            minutes > 0 -> "La tarea vence en $minutes min, $seconds s"
+            seconds > 0 -> "La tarea vence en $seconds s"
+            else -> "La tarea ha caducado.."
+        }
+    )
 }

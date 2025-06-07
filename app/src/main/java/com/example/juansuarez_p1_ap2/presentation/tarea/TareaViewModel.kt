@@ -37,10 +37,28 @@ class TareaViewModel @Inject constructor(
 
     private fun save() {
         viewModelScope.launch {
-            val tiempo = _uiState.value.tiempo
-            if (_uiState.value.descripcion.isNullOrBlank() || tiempo == null || tiempo <= 0) {
+            if (_uiState.value.descripcion.isNullOrBlank()) {
                 _uiState.update {
-                    it.copy(errorMessage = "Descripción o tiempo inválido")
+                    it.copy(errorMessage = "Es obligatorio rellenar el campo descripcion...")
+                }
+                return@launch
+            }
+
+            val descripcionYaExiste = tareaRepository.existeDescripcion(_uiState.value.descripcion!!)
+
+            if (descripcionYaExiste) {
+                _uiState.update {
+                    it.copy(errorMessage = "La descripcion ya existe")
+                }
+                return@launch
+            }
+
+            val tiempoActual = System.currentTimeMillis()
+            val tiempoSeleccionado = _uiState.value.tiempo ?: 0L
+
+            if (tiempoSeleccionado < tiempoActual) {
+                _uiState.update {
+                    it.copy(errorMessage = "La fecha y hora seleccionada no puede ser menor a la fecha actual")
                 }
                 return@launch
             }
@@ -64,7 +82,7 @@ class TareaViewModel @Inject constructor(
             it.copy(
                 tareaId = null,
                 descripcion = "",
-                tiempo = null,
+                tiempo = 0,
                 errorMessage = null
             )
         }
@@ -123,7 +141,7 @@ class TareaViewModel @Inject constructor(
         }
     }
 
-    private fun onTiempoChange(tiempo: Int) {
+    private fun onTiempoChange(tiempo: Long) {
         _uiState.update {
             it.copy(
                 tiempo = tiempo,
@@ -137,6 +155,13 @@ class TareaViewModel @Inject constructor(
             it.copy(tareaId = tareaId)
         }
     }
+
+    fun onNavigationDone(){
+        _uiState.update {
+            it.copy(guardado = false)
+        }
+    }
+
 }
 
 
